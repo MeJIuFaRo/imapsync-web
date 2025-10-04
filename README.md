@@ -1,5 +1,3 @@
----
-
 ## 🚀 Features:
 
 - **Email synchronization between two IMAP accounts** using `imapsync`.
