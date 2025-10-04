@@ -1,8 +1,3 @@
-# OpenThreat Mail Migrator
-
-OpenThreat Mail Migrator is a web application for synchronizing email accounts using [imapsync](https://github.com/imapsync/imapsync).  
-Created by **[OpenThreat](https://openthreat.ro)** to simplify secure email synchronization. It features a modern graphical interface with real-time sync output display and notifications when the process is complete.
-
 ---
 
 ## 🚀 Features
@@ -39,7 +34,7 @@ You can use the pre-built Docker image from Docker Hub or build the image locall
 
 2. Run the container:
    ```bash
-   docker run -p 3000:3000 razvan1/imapsync-web
+   docker run -p 3000:3000 mejiufaro/imapsync-web
    ```
 3. Access the web interface:
    Open your browser and go to: `http://localhost:3000`
