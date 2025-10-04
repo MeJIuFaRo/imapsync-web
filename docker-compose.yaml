@@ -1,6 +1,6 @@
 services:
   imapsync-web:
-    image: mejiufaro/imapsync:latest
+    image: mejiufaro/imapsync
     container_name: imapsync-web
     restart: unless-stopped
     ports:
