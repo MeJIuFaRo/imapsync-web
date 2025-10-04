@@ -57,7 +57,7 @@ You can use the pre-built Docker image from Docker Hub or build the image locall
 3. Run the container:
 
    ```bash
-   docker run -p 3000:3000 openthreat-imapsync
+   docker run -p 3000:3000 imapsync-web
    ```
 
 4. Access the web interface:
