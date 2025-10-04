@@ -1,0 +1,981 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMAP Sync Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 32px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            align-items: center;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #555;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #333;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(250, 112, 154, 0.4);
+        }
+
+        .btn-locked {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+            color: white;
+            position: relative;
+        }
+
+        .btn-locked::before {
+            content: "🔒 ";
+        }
+
+        .btn-cooldown {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            position: relative;
+        }
+
+        .progress-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .log-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .log-header h3 {
+            color: #333;
+            font-size: 18px;
+        }
+
+        .log-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .log-controls button {
+            padding: 6px 12px;
+            font-size: 12px;
+            flex: none;
+        }
+
+        .log-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .log-output::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .log-output::-webkit-scrollbar-track {
+            background: #2d2d2d;
+            border-radius: 5px;
+        }
+
+        .log-output::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .credentials-badge {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #155724;
+            font-weight: 600;
+        }
+
+        .credentials-badge.show {
+            display: flex;
+        }
+
+        .credentials-badge::before {
+            content: "✅";
+            font-size: 18px;
+        }
+
+        .cooldown-badge {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: #fff3cd;
+            border: 2px solid #ffeeba;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #856404;
+            font-weight: 600;
+        }
+
+        .cooldown-badge.show {
+            display: flex;
+        }
+
+        .cooldown-badge::before {
+            content: "⏱️";
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .log-file-info {
+            background: #2d2d2d;
+            color: #ffa500;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 IMAP Sync Tool</h1>
+
+        <div class="credentials-badge" id="credentialsBadge">
+            Credentials verified! Ready to sync.
+        </div>
+
+        <div class="cooldown-badge" id="cooldownBadge">
+            Please wait <span id="cooldownTimer">10</span> seconds before checking again...
+        </div>
+
+        <form id="syncForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="host1">Source Host (IMAP)</label>
+                    <input type="text" id="host1" name="host1" placeholder="imap.gmail.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="host2">Destination Host (IMAP)</label>
+                    <input type="text" id="host2" name="host2" placeholder="imap.example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user1">Source Username</label>
+                    <input type="text" id="user1" name="user1" placeholder="user@gmail.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user2">Destination Username</label>
+                    <input type="text" id="user2" name="user2" placeholder="user@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pass1">Source Password</label>
+                    <input type="password" id="pass1" name="pass1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pass2">Destination Password</label>
+                    <input type="password" id="pass2" name="pass2" required>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="nosslcheck" name="nosslcheck">
+                    <span>Disable SSL Certificate Check</span>
+                </label>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="debug" name="debug">
+                    <span>Debug Mode</span>
+                </label>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn-secondary" id="checkBtn">
+                    Check Credentials
+                </button>
+                <button type="submit" class="btn-locked" id="syncBtn" disabled title="Check credentials first">
+                    Verify Credentials First
+                </button>
+                <button type="button" class="btn-danger" id="cancelBtn" style="display: none;">
+                    Cancel Sync
+                </button>
+            </div>
+        </form>
+
+        <div class="status" id="status"></div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-info">
+                <span id="progressText">Initializing...</span>
+                <span id="progressStats"></span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-header">
+                <h3>📋 Sync Logs</h3>
+                <div class="log-controls">
+                    <button class="btn-primary" id="clearLogBtn">Clear</button>
+                    <button class="btn-secondary" id="downloadLogBtn">Download</button>
+                </div>
+            </div>
+            <div class="log-file-info" id="logFileInfo" style="display: none;"></div>
+            <div class="log-output" id="logOutput"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentJobId = null;
+        let logBuffer = '';
+        let credentialsVerified = false;
+        let checkCooldownTimer = null;
+        let checkCooldownSeconds = 0;
+        let checkTimeoutTimer = null;
+        let checkWs = null;
+        let checkCompleted = false;
+
+        const COOLDOWN_DURATION = 10; // seconds
+        const CHECK_TIMEOUT = 10; // seconds
+
+        const form = document.getElementById('syncForm');
+        const checkBtn = document.getElementById('checkBtn');
+        const syncBtn = document.getElementById('syncBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const status = document.getElementById('status');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const progressStats = document.getElementById('progressStats');
+        const logContainer = document.getElementById('logContainer');
+        const logOutput = document.getElementById('logOutput');
+        const logFileInfo = document.getElementById('logFileInfo');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        const downloadLogBtn = document.getElementById('downloadLogBtn');
+        const credentialsBadge = document.getElementById('credentialsBadge');
+        const cooldownBadge = document.getElementById('cooldownBadge');
+        const cooldownTimer = document.getElementById('cooldownTimer');
+
+        // Watch for form changes to reset verification
+        const formInputs = document.querySelectorAll('#syncForm input[type="text"], #syncForm input[type="password"]');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (credentialsVerified) {
+                    credentialsVerified = false;
+                    credentialsBadge.classList.remove('show');
+                    updateSyncButton();
+                }
+            });
+        });
+
+        function startCheckCooldown() {
+            checkCooldownSeconds = COOLDOWN_DURATION;
+            cooldownTimer.textContent = checkCooldownSeconds;
+            cooldownBadge.classList.add('show');
+            checkBtn.disabled = true;
+            checkBtn.className = 'btn-cooldown';
+            checkBtn.innerHTML = `⏱️ Wait ${checkCooldownSeconds}s`;
+
+            if (checkCooldownTimer) {
+                clearInterval(checkCooldownTimer);
+            }
+
+            checkCooldownTimer = setInterval(() => {
+                checkCooldownSeconds--;
+                cooldownTimer.textContent = checkCooldownSeconds;
+                checkBtn.innerHTML = `⏱️ Wait ${checkCooldownSeconds}s`;
+
+                if (checkCooldownSeconds <= 0) {
+                    clearInterval(checkCooldownTimer);
+                    checkCooldownTimer = null;
+                    cooldownBadge.classList.remove('show');
+                    checkBtn.disabled = false;
+                    checkBtn.className = 'btn-secondary';
+                    checkBtn.innerHTML = 'Check Credentials';
+                }
+            }, 1000);
+        }
+
+        function cleanupCheckTimeout() {
+            if (checkTimeoutTimer) {
+                clearTimeout(checkTimeoutTimer);
+                checkTimeoutTimer = null;
+            }
+            if (checkWs) {
+                try {
+                    checkWs.close();
+                } catch (e) {
+                    console.log('Error closing WebSocket:', e);
+                }
+                checkWs = null;
+            }
+        }
+
+        function handleCheckTimeout() {
+            if (!checkCompleted) {
+                cleanupCheckTimeout();
+                appendLog('\n[TIMEOUT] Credential check timed out after 10 seconds\n');
+                appendLog('[TIMEOUT] Server is terminating the imapsync process...\n\n');
+                showStatus('❌ Credential check timed out (10 seconds)', 'error');
+                credentialsVerified = false;
+                credentialsBadge.classList.remove('show');
+                updateSyncButton();
+                setButtonsState(false, false);
+            }
+        }
+
+        function updateSyncButton() {
+            if (credentialsVerified) {
+                syncBtn.disabled = false;
+                syncBtn.className = 'btn-primary';
+                syncBtn.innerHTML = 'Start Sync';
+                syncBtn.title = '';
+            } else {
+                syncBtn.disabled = true;
+                syncBtn.className = 'btn-locked';
+                syncBtn.innerHTML = 'Verify Credentials First';
+                syncBtn.title = 'Check credentials first';
+            }
+        }
+
+        function showStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+
+        function getFormData() {
+            return {
+                host1: document.getElementById('host1').value,
+                user1: document.getElementById('user1').value,
+                pass1: document.getElementById('pass1').value,
+                host2: document.getElementById('host2').value,
+                user2: document.getElementById('user2').value,
+                pass2: document.getElementById('pass2').value,
+                nosslcheck: document.getElementById('nosslcheck').checked ? 'on' : undefined,
+                debug: document.getElementById('debug').checked ? 'on' : undefined
+            };
+        }
+
+        function setButtonsState(checking, syncing) {
+            if (!checking && !syncing && checkCooldownSeconds <= 0) {
+                checkBtn.disabled = false;
+                checkBtn.className = 'btn-secondary';
+                checkBtn.innerHTML = 'Check Credentials';
+            }
+            
+            // ✅ Reset cancel button state when not syncing
+            if (syncing) {
+                cancelBtn.style.display = 'block';
+                cancelBtn.disabled = false;
+                cancelBtn.innerHTML = 'Cancel Sync';
+            } else {
+                cancelBtn.style.display = 'none';
+                cancelBtn.disabled = false;
+                cancelBtn.innerHTML = 'Cancel Sync';
+            }
+            
+            if (checking) {
+                checkBtn.innerHTML = '<span class="spinner"></span>Checking...';
+                checkBtn.disabled = true;
+                syncBtn.disabled = true;
+            } else {
+                if (checkCooldownSeconds <= 0) {
+                    checkBtn.innerHTML = 'Check Credentials';
+                }
+                updateSyncButton();
+            }
+
+            if (syncing) {
+                syncBtn.innerHTML = '<span class="spinner"></span>Syncing...';
+                syncBtn.disabled = true;
+                checkBtn.disabled = true;
+            } else if (!checking) {
+                updateSyncButton();
+            }
+        }
+
+        function appendLog(text) {
+            logBuffer += text;
+            logOutput.textContent = logBuffer;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function connectWebSocket(jobId) {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}?job=${jobId}`;
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === 'progress') {
+                        const percentage = data.percentage || 0;
+                        progressFill.style.width = `${percentage}%`;
+                        progressFill.textContent = `${percentage}%`;
+                        
+                        if (data.copied !== undefined && data.total !== undefined) {
+                            progressStats.textContent = `${data.copied} / ${data.total} messages`;
+                            progressText.textContent = 'Syncing messages...';
+                        }
+                    } else if (data.type === 'done') {
+                        setButtonsState(false, false);
+                        progressText.textContent = data.cancelled ? 'Sync Cancelled' : 'Sync Complete!';
+                        
+                        if (data.code === 0 && !data.cancelled) {
+                            showStatus('✅ Synchronization completed successfully!', 'success');
+                            progressFill.style.width = '100%';
+                            progressFill.textContent = '100%';
+                        } else if (data.cancelled) {
+                            showStatus('⚠️ Synchronization was cancelled', 'warning');
+                        } else {
+                            showStatus(`❌ Synchronization failed with code ${data.code}`, 'error');
+                        }
+                        
+                        ws.close();
+                        ws = null;
+                        currentJobId = null;
+                    } else if (data.type === 'keepalive') {
+                        // Keepalive ping
+                    }
+                } catch (e) {
+                    // Plain text log
+                    appendLog(event.data);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                showStatus('Connection error occurred', 'error');
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                setButtonsState(false, false);
+            };
+        }
+
+        // Check credentials
+        checkBtn.addEventListener('click', async () => {
+            const formData = getFormData();
+            
+            // Reset verification state
+            credentialsVerified = false;
+            credentialsBadge.classList.remove('show');
+            checkCompleted = false;
+            
+            setButtonsState(true, false);
+            logBuffer = '';
+            logOutput.textContent = '';
+            logContainer.style.display = 'block';
+            logFileInfo.style.display = 'none';
+            progressContainer.style.display = 'none';
+
+            // Start cooldown immediately
+            startCheckCooldown();
+
+            // Start timeout timer immediately (10 seconds)
+            checkTimeoutTimer = setTimeout(handleCheckTimeout, CHECK_TIMEOUT * 1000);
+
+            try {
+                const response = await fetch('/check-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.jobId) {
+                    currentJobId = data.jobId;
+                    
+                    // Create a temporary WebSocket for checking
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}?job=${data.jobId}`;
+                    checkWs = new WebSocket(wsUrl);
+                    
+                    checkWs.onmessage = (event) => {
+                        try {
+                            const wsData = JSON.parse(event.data);
+                            if (wsData.type === 'done') {
+                                checkCompleted = true;
+                                cleanupCheckTimeout();
+                                
+                                // Check for timeout (exit code 124)
+                                if (wsData.timedOut || wsData.code === 124) {
+                                    credentialsVerified = false;
+                                    appendLog('\n[SERVER] Process was terminated due to timeout\n');
+                                    showStatus('❌ Credential check timed out (10 seconds)', 'error');
+                                } else if (wsData.code === 0) {
+                                    credentialsVerified = true;
+                                    credentialsBadge.classList.add('show');
+                                    showStatus('✅ Credentials verified successfully!', 'success');
+                                } else {
+                                    credentialsVerified = false;
+                                    showStatus('❌ Credential verification failed', 'error');
+                                }
+                                setButtonsState(false, false);
+                                checkWs.close();
+                                checkWs = null;
+                            }
+                        } catch (e) {
+                            appendLog(event.data);
+                        }
+                    };
+                    
+                    checkWs.onerror = () => {
+                        if (!checkCompleted) {
+                            checkCompleted = true;
+                            cleanupCheckTimeout();
+                            showStatus('Connection error during verification', 'error');
+                            setButtonsState(false, false);
+                        }
+                    };
+
+                    checkWs.onclose = () => {
+                        if (!checkCompleted) {
+                            checkCompleted = true;
+                            cleanupCheckTimeout();
+                        }
+                    };
+                    
+                    appendLog('Checking credentials with --justlogin...\n');
+                    appendLog('Timeout: 10 seconds\n\n');
+                } else {
+                    throw new Error('No job ID received');
+                }
+            } catch (error) {
+                checkCompleted = true;
+                cleanupCheckTimeout();
+                setButtonsState(false, false);
+                showStatus(`Error: ${error.message}`, 'error');
+                appendLog(`Error: ${error.message}\n`);
+            }
+        });
+
+        // Start sync
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!credentialsVerified) {
+                showStatus('⚠️ Please verify credentials first', 'warning');
+                return;
+            }
+            
+            const formData = getFormData();
+            
+            setButtonsState(false, true);
+            logBuffer = '';
+            logOutput.textContent = '';
+            logContainer.style.display = 'block';
+            logFileInfo.style.display = 'none';
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressFill.textContent = '0%';
+            progressText.textContent = 'Starting synchronization...';
+            progressStats.textContent = '';
+
+            try {
+                const response = await fetch('/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.jobId) {
+                    currentJobId = data.jobId;
+                    connectWebSocket(data.jobId);
+                    appendLog('=== IMAP Synchronization Started ===\n\n');
+                    
+                    if (data.logFile) {
+                        logFileInfo.textContent = `📁 Log file: ${data.logFile}`;
+                        logFileInfo.style.display = 'block';
+                    }
+                } else if (data.error) {
+                    throw new Error(data.error);
+                } else {
+                    throw new Error('No job ID received');
+                }
+            } catch (error) {
+                setButtonsState(false, false);
+                showStatus(`Error: ${error.message}`, 'error');
+                appendLog(`Error: ${error.message}\n`);
+            }
+        });
+
+        // Cancel sync
+        cancelBtn.addEventListener('click', async () => {
+            if (!currentJobId) {
+                showStatus('No active sync to cancel', 'warning');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to cancel the synchronization?')) {
+                return;
+            }
+
+            try {
+                cancelBtn.disabled = true;
+                cancelBtn.innerHTML = '<span class="spinner"></span>Cancelling...';
+
+                const response = await fetch('/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jobId: currentJobId })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    appendLog(`\n[CLIENT] ${data.message}\n`);
+                    showStatus('Cancellation requested - waiting for graceful shutdown...', 'info');
+                } else {
+                    throw new Error(data.error || 'Failed to cancel sync');
+                }
+            } catch (error) {
+                showStatus(`Cancel error: ${error.message}`, 'error');
+                appendLog(`\n[CLIENT] Cancel error: ${error.message}\n`);
+                // ✅ Reset button state on error
+                cancelBtn.disabled = false;
+                cancelBtn.innerHTML = 'Cancel Sync';
+            }
+        });
+
+        // Clear log
+        clearLogBtn.addEventListener('click', () => {
+            logBuffer = '';
+            logOutput.textContent = '';
+        });
+
+        // Download log
+        downloadLogBtn.addEventListener('click', () => {
+            const blob = new Blob([logBuffer], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `imapsync-log-${new Date().toISOString()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Auto-scroll log
+        const observer = new MutationObserver(() => {
+            logOutput.scrollTop = logOutput.scrollHeight;
+        });
+
+        observer.observe(logOutput, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+
+        // Initialize button state
+        updateSyncButton();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (checkCooldownTimer) {
+                clearInterval(checkCooldownTimer);
+            }
+            cleanupCheckTimeout();
+        });
+    </script>
+</body>
+</html>
