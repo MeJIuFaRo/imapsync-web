@@ -34,7 +34,7 @@ You can use the pre-built Docker image from Docker Hub or build the image locall
 1. Pull the Docker image from Docker Hub:
 
    ```bash
-   docker pull razvan1/imapsync-web
+   docker pull mejiufaro/imapsync-web
    ```
 
 2. Run the container:
@@ -51,14 +51,14 @@ You can use the pre-built Docker image from Docker Hub or build the image locall
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/OpenThreat-ro/imapsync-web.git
+   git clone https://github.com/MeJIuFaRo/imapsync-web.git
    cd imapsync-web
    ```
 
 2. Build the Docker image:
 
    ```bash
-   docker build -t openthreat-imapsync .
+   docker build -t imapsync-web .
    ```
 
 3. Run the container:
@@ -80,19 +80,9 @@ Source Password/Destination Password: Enter the respective passwords for authent
 
 ---
 
-## 🌐 About OpenThreat
-
-This project is brought to you by **[OpenThreat](https://openthreat.ro)**.  
-Visit our website for more security and infrastructure solutions and services!
-
----
-
 🛡️ Contributions
 
 Contributions are welcome! If you'd like to propose improvements or fix issues, feel free to open a Pull Request.
 
 ---
 
-🧾 License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
