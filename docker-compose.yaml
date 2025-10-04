@@ -1,0 +1,9 @@
+services:
+  imapsync-web:
+    image: mejiufaro/imapsync:latest
+    container_name: imapsync-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      -  ./logs:/tmp/logs
