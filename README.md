@@ -1,6 +1,6 @@
 ---
 
-## 🚀 Features
+## 🚀 Features:
 
 - **Email synchronization between two IMAP accounts** using `imapsync`.
 - **Modern and responsive user interface** powered by Bootstrap 5.
